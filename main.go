@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+const DIE_SIZE_LIMIT = 10000
+
 func rollDie(dieType int) int {
 	return rint.Gen(dieType) + 1
 }
@@ -31,25 +33,41 @@ func main() {
 	switch cmdStr := os.Args[1]; {
 	case len(re.Find([]byte(cmdStr))) > 0:
 
+		// if the string is not contained entirely in the regex, it must be an invalid roll string
+		// ensures we don't take any unexpected behaviors for half matches
 		if !stringContainedInRegex(cmdStr, re) {
 			fmt.Printf("roll: specified an invalid dice expression\nFor help, type: 'roll --help'\n")
 			return
 		}
 
-		rint.Init()
+		// initialize the prng only after ensuring that the imput is correct
 		dieStrArr := strings.Split(cmdStr, "d")
 
 		var rollVals []int
 
 		numDie, err := strconv.Atoi(dieStrArr[0])
 		if err != nil {
-			fmt.Errorf("The number of die string to int conversion failed with the following error: %s", err)
+			fmt.Printf("The number of die string to int conversion failed with the following error: %s", err)
+			os.Exit(1)
 		}
 
 		typeDie, err := strconv.Atoi(dieStrArr[1])
 		if err != nil {
-			fmt.Errorf("The type of die string to int conversion failed with the following error: %s", err)
+			fmt.Printf("The type of die string to int conversion failed with the following error: %s", err)
+			os.Exit(1)
 		}
+
+		if numDie > DIE_SIZE_LIMIT {
+			fmt.Println("roll: You can't fit this many dice in your hands.  Shorten your query and try again")
+			os.Exit(1)
+		}
+
+		if typeDie > DIE_SIZE_LIMIT {
+			fmt.Println("roll: You can't conceive of a die this large.  Shorten your query and try again")
+			os.Exit(1)
+		}
+
+		rint.Init()
 
 		for i := 0; i < numDie; i++ {
 			// add one in order to offset and mimic a die

@@ -23,7 +23,7 @@ func stringContainedInRegex(s string, re *regexp.Regexp) bool {
 }
 
 func main() {
-	re := regexp.MustCompile(`^[0-9]+d[0-9]+`)
+	re := regexp.MustCompile(`[0-9]+d[0-9]+\+*[0-9]+`)
 
 	if len(os.Args) < 2 {
 		fmt.Printf("roll: A dice roll wasn't made\nFor help, type: 'roll --help'\n")

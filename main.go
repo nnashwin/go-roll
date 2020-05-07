@@ -90,6 +90,11 @@ func main() {
 			}
 		}
 
+		if numDie == 0 || typeDie == 0 {
+			fmt.Println("roll: You ponder the meaning of the number '0'. Consequently, you forget to throw any dice")
+			os.Exit(1)
+		}
+
 		if numDie > DIE_SIZE_LIMIT {
 			fmt.Println("roll: You can't fit this many dice in your hands.  Shorten your query and try again")
 			os.Exit(1)

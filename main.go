@@ -11,6 +11,17 @@ import (
 
 const DIE_SIZE_LIMIT = 10000
 
+func isOp(r rune) bool {
+	return r == '+' || r == '-'
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func rollDie(dieType int) int {
 	return rint.Gen(dieType) + 1
 }
@@ -22,8 +33,13 @@ func stringContainedInRegex(s string, re *regexp.Regexp) bool {
 	return false
 }
 
+var opMap = map[string](func(int, int) int){
+	"+": func(a, b int) int { return a + b },
+	"-": func(a, b int) int { return a - b },
+}
+
 func main() {
-	re := regexp.MustCompile(`[0-9]+d[0-9]+\+*[0-9]+`)
+	re := regexp.MustCompile(`[0-9]+d[0-9]*(\+|\-)*[0-9]+`)
 
 	if len(os.Args) < 2 {
 		fmt.Printf("roll: A dice roll wasn't made\nFor help, type: 'roll --help'\n")
@@ -43,18 +59,35 @@ func main() {
 		// initialize the prng only after ensuring that the imput is correct
 		dieStrArr := strings.Split(cmdStr, "d")
 
-		var rollVals []int
+		var op string
+		for _, ch := range dieStrArr[1] {
+			if isOp(ch) {
+				op = string(ch)
+			}
+		}
 
 		numDie, err := strconv.Atoi(dieStrArr[0])
 		if err != nil {
-			fmt.Printf("The number of die string to int conversion failed with the following error: %s", err)
+			fmt.Printf("The number of die string to int conversion failed with the following error: %s\n", err)
 			os.Exit(1)
 		}
 
-		typeDie, err := strconv.Atoi(dieStrArr[1])
+		// use SplitN because it works when there is an operator and when there is not an operator
+		typeStrArr := strings.SplitN(dieStrArr[1], op, len(op)+1)
+
+		typeDie, err := strconv.Atoi(typeStrArr[0])
 		if err != nil {
-			fmt.Printf("The type of die string to int conversion failed with the following error: %s", err)
+			fmt.Printf("The type of die string to int conversion failed with the following error: %s\n", err)
 			os.Exit(1)
+		}
+
+		modifierDie := 0
+		if len(typeStrArr) > 1 {
+			modifierDie, err = strconv.Atoi(typeStrArr[1])
+			if err != nil {
+				fmt.Printf("The modifier of die string to int conversion failed with the following error: %s\n", err)
+				os.Exit(1)
+			}
 		}
 
 		if numDie > DIE_SIZE_LIMIT {
@@ -70,11 +103,19 @@ func main() {
 		rint.Init()
 
 		for i := 0; i < numDie; i++ {
-			// add one in order to offset and mimic a die
-			rollVals = append(rollVals, rint.Gen(typeDie)+1)
+			// use the op we found in the type of die / modifier string to call the op function on the die
+			if opFn, exists := opMap[op]; exists {
+				fmt.Printf("Rolling a d%d %s %d:   ", typeDie, op, modifierDie)
+				val := maxInt(opFn(rint.Gen(typeDie)+1, modifierDie), 1)
+				fmt.Printf("%d\n", val)
+			} else {
+				// add one in order to offset and mimic a die
+				fmt.Printf("Rolling a d%d:    ", typeDie)
+				val := rint.Gen(typeDie) + 1
+				fmt.Printf("%d\n", val)
+			}
 		}
 
-		fmt.Println(rollVals)
 		break
 	default:
 		fmt.Printf("roll: '%s' is not a roll command\nFor help, type: 'roll --help'\n", cmdStr)

@@ -39,7 +39,7 @@ var opMap = map[string](func(int, int) int){
 }
 
 func main() {
-	re := regexp.MustCompile(`[0-9]+d[0-9]*(\+|\-)*[0-9]+`)
+	re := regexp.MustCompile(`[0-9]*d[0-9]*(\+|\-)*[0-9]+`)
 
 	if len(os.Args) < 2 {
 		fmt.Printf("roll: A dice roll wasn't made\nFor help, type: 'roll --help'\n")
@@ -66,10 +66,17 @@ func main() {
 			}
 		}
 
-		numDie, err := strconv.Atoi(dieStrArr[0])
-		if err != nil {
-			fmt.Printf("The number of die string to int conversion failed with the following error: %s\n", err)
-			os.Exit(1)
+		var err error
+		var numDie int
+		//  set numDie to 1 in order to handle case where the number of dice is not specified
+		if dieStrArr[0] == "" {
+			numDie = 1
+		} else {
+			numDie, err = strconv.Atoi(dieStrArr[0])
+			if err != nil {
+				fmt.Printf("The number of die string to int conversion failed with the following error: %s\n", err)
+				os.Exit(1)
+			}
 		}
 
 		// use SplitN because it works when there is an operator and when there is not an operator
@@ -90,6 +97,7 @@ func main() {
 			}
 		}
 
+		// handle edge case when a type of die that doesn't exist is thrown
 		if numDie == 0 || typeDie == 0 {
 			fmt.Println("roll: You ponder the meaning of the number '0'. Consequently, you forget to throw any dice")
 			os.Exit(1)

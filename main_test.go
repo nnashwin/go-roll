@@ -1,17 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 )
 
 func TestStringContainedInRegex(t *testing.T) {
 	s := "1d12+5"
-	re := regexp.MustCompile(`[0-9]+d[0-9]+\+*[0-9]+`)
-	fmt.Println(stringContainedInRegex(s, re))
+	re := regexp.MustCompile(`[0-9]*d[0-9]+\+*[0-9]+`)
 	if !stringContainedInRegex(s, re) {
 		t.Errorf("The wrong regexp was used in TestStringContainedInRegex\n String: %s, Regexp: %q\n", s, re)
+	}
+
+	passingStrNoNumDie := "d10"
+	if !stringContainedInRegex(passingStrNoNumDie, re) {
+		t.Errorf("die strings with no number of dice should be contained in regexp\nfailingString: %s, regexp: %q", passingStrNoNumDie, re)
 	}
 
 	failingStrIncorrectAdd := "1d12+5fq"

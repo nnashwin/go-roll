@@ -46,7 +46,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	switch cmdStr := os.Args[1]; {
+	// concat argument values into a str in order to parse operators that have spaces
+	var cmdStr string
+	for _, v := range os.Args[1:] {
+		cmdStr += v
+	}
+
+	switch {
 	case len(re.Find([]byte(cmdStr))) > 0:
 
 		// if the string is not contained entirely in the regex, it must be an invalid roll string

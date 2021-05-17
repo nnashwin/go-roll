@@ -1,4 +1,4 @@
-module go-roll
+module github.com/tlboright/go-roll
 
 go 1.13
 
